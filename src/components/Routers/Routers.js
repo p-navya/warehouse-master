@@ -1,6 +1,6 @@
 import React from 'react'
 import {Routes, Route} from "react-router-dom";
-import Dashboard from "../Dashboard";
+import Dashboard from "../Dashboard";  
 import Recommendations from '../Recommendations';
 import Alerts from "../Alerts";
 import Login from '../Login';
