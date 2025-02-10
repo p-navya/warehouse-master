@@ -2,10 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaBell, FaUser, FaPowerOff } from 'react-icons/fa';
 import { Link } from "react-router-dom";
+
 function Admin() {
   const [products, setProducts] = useState([]);
   const [showAlerts, setShowAlerts] = useState(false);
   const [alertMessages, setAlertMessages] = useState([]);
+  const [rackBins, setRackBins] = useState({});
   const navigate = useNavigate();
 
   const fetchProducts = () => {
@@ -35,8 +37,30 @@ function Admin() {
     fetchProducts();
   }, []);
 
+  const handleRackBinChange = (productId, value) => {
+    setRackBins((prev) => ({ ...prev, [productId]: value }));
+  };
+
+  const allocateRackBin = async (productId) => {
+    const rackBin = rackBins[productId];
+    if (!rackBin) return alert("Please enter a Rack Bin");
+
+    const response = await fetch(`http://localhost:5000/api/products/${productId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ rack_bin: rackBin }),
+    });
+
+    if (response.ok) {
+      alert("Rack Bin allocated successfully");
+      fetchProducts();
+    } else {
+      alert("Error allocating Rack Bin");
+    }
+  };
+
   const handleLogout = () => {
-    console.log("Logging out..."); // Replace with actual logout logic
+    console.log("Logging out...");
     navigate("/login");
   };
 
@@ -77,8 +101,8 @@ function Admin() {
             </button>
 
             {/* Logout (Power Button) */}
-            <Link to ="/">
-              <button onClick={handleLogout} className="text-black ">
+            <Link to="/">
+              <button onClick={handleLogout} className="text-black">
                 <FaPowerOff size={20} />
               </button>
             </Link>
@@ -92,7 +116,7 @@ function Admin() {
             <table className="min-w-full bg-white border border-gray-200 text-sm">
               <thead className="bg-gray-100">
                 <tr>
-                  {["ID", "Name", "No. of Units", "Place of Origin", "Manufactured Date", "Expiry Date", "Starting Delivery", "Estimated Delivery", "Rack Bin", "Current Status", "Suggested Mart"].map((header) => (
+                  {["ID", "Name", "No. of Units", "Place of Origin", "Manufactured Date", "Expiry Date", "Starting Delivery", "Estimated Delivery", "Rack Bin", "Actions", "Current Status", "Suggested Mart"].map((header) => (
                     <th key={header} className="py-2 px-2 border text-left">{header}</th>
                   ))}
                 </tr>
@@ -109,14 +133,30 @@ function Admin() {
                       <td className="py-1 px-2 border">{product.expiry_date}</td>
                       <td className="py-1 px-2 border">{product.starting_delivery || 'N/A'}</td>
                       <td className="py-1 px-2 border">{product.estimated_delivery || 'N/A'}</td>
-                      <td className="py-1 px-2 border">{product.rack_bin}</td>
+                      <td className="py-1 px-2 border">
+                        <input
+                          type="text"
+                          placeholder="Enter Rack Bin"
+                          value={rackBins[product.id] || ""}
+                          onChange={(e) => handleRackBinChange(product.id, e.target.value)}
+                          className="border p-1"
+                        />
+                      </td>
+                      <td className="py-1 px-2 border">
+                        <button
+                          onClick={() => allocateRackBin(product.id)}
+                          className="bg-green-500 text-white px-4 py-1 rounded"
+                        >
+                          Allocate
+                        </button>
+                      </td>
                       <td className="py-1 px-2 border">{product.current_status}</td>
                       <td className="py-1 px-2 border">{product.suggested_mart}</td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="11" className="py-3 text-center">No products available</td>
+                    <td colSpan="12" className="py-3 text-center">No products available</td>
                   </tr>
                 )}
               </tbody>
