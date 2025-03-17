@@ -21,7 +21,7 @@ const Resources = () => {
     fetch(`http://localhost:5000/products/${task.id}`, {
       method: 'PUT',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json',   
       },
       body: JSON.stringify({
         current_status: 'Completed',  // Update the status to 'Completed'
